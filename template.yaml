@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  lambda-python3.14
+
+  Sample SAM Template for lambda-python3.14
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+
+Parameters:
+  ProgramTableName:
+    Type: String
+    Default: programs
+    Description: "Nombre de la tabla DynamoDB usada por el lambda program"
+
+Resources:
+  AuthValidateUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: auth/
+      Handler: app.lambda_handler
+      Runtime: python3.14
+      Architectures:
+        - x86_64
+      Events:
+        AuthValidateUser:
+          Type: Api
+          Properties:
+            Path: /auth/validate
+            Method: post
+
+  ProgramFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: program/
+      Handler: app.lambda_handler
+      Runtime: python3.14
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          PROGRAM_TABLE_NAME: !Ref ProgramTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProgramTableName
+      Events:
+        ProgramGetById:
+          Type: Api
+          Properties:
+            Path: /program/{program_id}
+            Method: get
+
+Outputs:
+  AuthValidateUserApi:
+    Description: "API Gateway endpoint URL for Prod stage for Auth validation function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/Prod/auth/validate/"
+  AuthValidateUserFunction:
+    Description: "Auth validation Lambda Function ARN"
+    Value: !GetAtt AuthValidateUserFunction.Arn
+  AuthValidateUserFunctionIamRole:
+    Description: "Implicit IAM Role created for Auth validation function"
+    Value: !GetAtt AuthValidateUserFunctionRole.Arn
+  ProgramApi:
+    Description: "API Gateway endpoint URL for Prod stage for Program function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/Prod/program/{program_id}/"
+  ProgramFunction:
+    Description: "Program Lambda Function ARN"
+    Value: !GetAtt ProgramFunction.Arn
+  ProgramFunctionIamRole:
+    Description: "Implicit IAM Role created for Program function"
+    Value: !GetAtt ProgramFunctionRole.Arn

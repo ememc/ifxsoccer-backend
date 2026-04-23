@@ -1,0 +1,15 @@
+{
+  "resource": "/auth/validate",
+  "path": "/auth/validate",
+  "httpMethod": "POST",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "requestContext": {
+    "resourcePath": "/auth/validate",
+    "httpMethod": "POST",
+    "path": "/Prod/auth/validate"
+  },
+  "body": "{\"username\":\"admin\",\"password\":\"ifx123\"}",
+  "isBase64Encoded": false
+}
