@@ -1,0 +1,7 @@
+{
+  "httpMethod": "PUT",
+  "pathParameters": {
+    "image_id": "4a2ed845-defc-4216-9c7e-40f4994685b8"
+  },
+  "body": "{\"image_title\":\"U19 A-Junioren Bundesliga – SpVgg Greuther Fürth vs FC Car\",\"image_url\":\"https://cdn.ifxsoccer.com/wp-content/uploads/20240729152720/German-Youth-Soccer-Liga-U19-30-1024x682.webp\",\"image_date\":\"2026-04-25\",\"image_enabled\":false}"
+}

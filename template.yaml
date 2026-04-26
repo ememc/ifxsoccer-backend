@@ -15,6 +15,10 @@ Parameters:
     Type: String
     Default: programs
     Description: "Nombre de la tabla DynamoDB usada por el lambda program"
+  ImagesTableName:
+    Type: String
+    Default: images
+    Description: "Nombre de la tabla DynamoDB usada por el lambda images"
 
 Resources:
   AuthValidateUserFunction:
@@ -53,6 +57,42 @@ Resources:
             Path: /program/{program_id}
             Method: get
 
+  ImagesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: images/
+      Handler: app.lambda_handler
+      Runtime: python3.14
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          IMAGES_TABLE_NAME: !Ref ImagesTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ImagesTableName
+      Events:
+        ImagesList:
+          Type: Api
+          Properties:
+            Path: /images
+            Method: get
+        ImagesCreate:
+          Type: Api
+          Properties:
+            Path: /images
+            Method: post
+        ImagesGetById:
+          Type: Api
+          Properties:
+            Path: /images/{image_id}
+            Method: get
+        ImagesUpdate:
+          Type: Api
+          Properties:
+            Path: /images/{image_id}
+            Method: put
+
 Outputs:
   AuthValidateUserApi:
     Description: "API Gateway endpoint URL for Prod stage for Auth validation function"
@@ -72,3 +112,12 @@ Outputs:
   ProgramFunctionIamRole:
     Description: "Implicit IAM Role created for Program function"
     Value: !GetAtt ProgramFunctionRole.Arn
+  ImagesApi:
+    Description: "API Gateway endpoint URL for Prod stage for Images function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/Prod/images"
+  ImagesFunction:
+    Description: "Images Lambda Function ARN"
+    Value: !GetAtt ImagesFunction.Arn
+  ImagesFunctionIamRole:
+    Description: "Implicit IAM Role created for Images function"
+    Value: !GetAtt ImagesFunctionRole.Arn

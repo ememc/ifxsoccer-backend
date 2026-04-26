@@ -18,4 +18,13 @@ manifest_hash = "68b329da9893e34099c7d8ad5cb9c940"
 packagetype = "Zip"
 functions = ["ProgramFunction"]
 
+[function_build_definitions.9b000f65-0e7c-4628-bd1a-43489aaaf6ec]
+codeuri = "D:\\IFXweb\\backend\\images"
+runtime = "python3.14"
+architecture = "x86_64"
+handler = "app.lambda_handler"
+manifest_hash = "68b329da9893e34099c7d8ad5cb9c940"
+packagetype = "Zip"
+functions = ["ImagesFunction"]
+
 [layer_build_definitions]
