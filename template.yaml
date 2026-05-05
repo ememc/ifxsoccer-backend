@@ -19,6 +19,10 @@ Parameters:
     Type: String
     Default: images
     Description: "Nombre de la tabla DynamoDB usada por el lambda images"
+  VideosTableName:
+    Type: String
+    Default: videos
+    Description: "Nombre de la tabla DynamoDB usada por el lambda videos"
 
 Resources:
   AuthValidateUserFunction:
@@ -93,6 +97,42 @@ Resources:
             Path: /images/{image_id}
             Method: put
 
+  VideosFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: videos/
+      Handler: app.lambda_handler
+      Runtime: python3.14
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          VIDEOS_TABLE_NAME: !Ref VideosTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref VideosTableName
+      Events:
+        VideosList:
+          Type: Api
+          Properties:
+            Path: /videos
+            Method: get
+        VideosCreate:
+          Type: Api
+          Properties:
+            Path: /videos
+            Method: post
+        VideosGetById:
+          Type: Api
+          Properties:
+            Path: /videos/{video_id}
+            Method: get
+        VideosUpdate:
+          Type: Api
+          Properties:
+            Path: /videos/{video_id}
+            Method: put
+
 Outputs:
   AuthValidateUserApi:
     Description: "API Gateway endpoint URL for Prod stage for Auth validation function"
@@ -121,3 +161,12 @@ Outputs:
   ImagesFunctionIamRole:
     Description: "Implicit IAM Role created for Images function"
     Value: !GetAtt ImagesFunctionRole.Arn
+  VideosApi:
+    Description: "API Gateway endpoint URL for Prod stage for Videos function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/Prod/videos"
+  VideosFunction:
+    Description: "Videos Lambda Function ARN"
+    Value: !GetAtt VideosFunction.Arn
+  VideosFunctionIamRole:
+    Description: "Implicit IAM Role created for Videos function"
+    Value: !GetAtt VideosFunctionRole.Arn

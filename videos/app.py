@@ -8,23 +8,23 @@ from botocore.exceptions import BotoCoreError, ClientError
 
 dynamodb = boto3.resource("dynamodb", region_name="us-west-1")
 
-REQUIRED_IMAGE_FIELDS = (
-    "image_id",
-    "image_title",
-    "image_url",
-    "image_alt",
-    "image_date",
-    "image_order",
-    "image_enabled",
+REQUIRED_VIDEO_FIELDS = (
+    "video_id",
+    "video_title",
+    "video_url",
+    "video_alt",
+    "video_date",
+    "video_order",
+    "video_enabled",
 )
 
-UPDATABLE_IMAGE_FIELDS = (
-    "image_title",
-    "image_url",
-    "image_alt",
-    "image_date",
-    "image_order",
-    "image_enabled",
+UPDATABLE_VIDEO_FIELDS = (
+    "video_title",
+    "video_url",
+    "video_alt",
+    "video_date",
+    "video_order",
+    "video_enabled",
 )
 
 
@@ -46,9 +46,9 @@ def _build_response(status_code, body):
 
 
 def _get_table():
-    table_name = os.environ.get("IMAGES_TABLE_NAME", "images")
+    table_name = os.environ.get("VIDEOS_TABLE_NAME", "videos")
     if not table_name:
-        raise ValueError("Falta la variable de entorno IMAGES_TABLE_NAME.")
+        raise ValueError("Falta la variable de entorno VIDEOS_TABLE_NAME.")
     return dynamodb.Table(table_name)
 
 
@@ -71,59 +71,59 @@ def _parse_body(event):
 
 
 def _validate_required_fields(body):
-    missing_fields = [field for field in REQUIRED_IMAGE_FIELDS if field not in body]
+    missing_fields = [field for field in REQUIRED_VIDEO_FIELDS if field not in body]
     if missing_fields:
         raise ValueError(
             f"Faltan campos obligatorios: {', '.join(missing_fields)}."
         )
 
-    _validate_image_field_types(body)
+    _validate_video_field_types(body)
 
 
-def _validate_image_field_types(fields):
-    if "image_enabled" in fields and not isinstance(fields["image_enabled"], bool):
-        raise ValueError("El campo image_enabled debe ser booleano.")
+def _validate_video_field_types(fields):
+    if "video_enabled" in fields and not isinstance(fields["video_enabled"], bool):
+        raise ValueError("El campo video_enabled debe ser booleano.")
 
-    if "image_order" in fields and (
-        not isinstance(fields["image_order"], int)
-        or isinstance(fields["image_order"], bool)
+    if "video_order" in fields and (
+        not isinstance(fields["video_order"], int)
+        or isinstance(fields["video_order"], bool)
     ):
-        raise ValueError("El campo image_order debe ser numerico entero.")
+        raise ValueError("El campo video_order debe ser numerico entero.")
 
 
-def _create_image(table, body):
+def _create_video(table, body):
     _validate_required_fields(body)
 
-    image = {
-        "image_id": body["image_id"],
-        "image_title": body["image_title"],
-        "image_url": body["image_url"],
-        "image_alt": body["image_alt"],
-        "image_date": body["image_date"],
-        "image_order": body["image_order"],
-        "image_enabled": body["image_enabled"],
+    video = {
+        "video_id": body["video_id"],
+        "video_title": body["video_title"],
+        "video_url": body["video_url"],
+        "video_alt": body["video_alt"],
+        "video_date": body["video_date"],
+        "video_order": body["video_order"],
+        "video_enabled": body["video_enabled"],
     }
 
     table.put_item(
-        Item=image,
-        ConditionExpression="attribute_not_exists(image_id)",
+        Item=video,
+        ConditionExpression="attribute_not_exists(video_id)",
     )
 
     return _build_response(
         201,
         {
-            "message": "Imagen creada correctamente.",
-            "image": image,
+            "message": "Video creado correctamente.",
+            "video": video,
         },
     )
 
 
-def _update_image(table, image_id, body):
-    if not image_id:
-        raise ValueError("Debes enviar image_id en la URL.")
+def _update_video(table, video_id, body):
+    if not video_id:
+        raise ValueError("Debes enviar video_id en la URL.")
 
     update_fields = {
-        key: body[key] for key in UPDATABLE_IMAGE_FIELDS if key in body
+        key: body[key] for key in UPDATABLE_VIDEO_FIELDS if key in body
     }
 
     if not update_fields:
@@ -131,7 +131,7 @@ def _update_image(table, image_id, body):
             "Debes enviar al menos un campo para actualizar."
         )
 
-    _validate_image_field_types(update_fields)
+    _validate_video_field_types(update_fields)
 
     expression_attribute_names = {}
     expression_attribute_values = {}
@@ -145,43 +145,43 @@ def _update_image(table, image_id, body):
         update_parts.append(f"{name_key} = {value_key}")
 
     response = table.update_item(
-        Key={"image_id": image_id},
+        Key={"video_id": video_id},
         UpdateExpression="SET " + ", ".join(update_parts),
         ExpressionAttributeNames=expression_attribute_names,
         ExpressionAttributeValues=expression_attribute_values,
-        ConditionExpression="attribute_exists(image_id)",
+        ConditionExpression="attribute_exists(video_id)",
         ReturnValues="ALL_NEW",
     )
 
     return _build_response(
         200,
         {
-            "message": "Imagen actualizada correctamente.",
-            "image": response.get("Attributes", {}),
+            "message": "Video actualizado correctamente.",
+            "video": response.get("Attributes", {}),
         },
     )
 
 
-def _get_image(table, image_id):
-    response = table.get_item(Key={"image_id": image_id})
+def _get_video(table, video_id):
+    response = table.get_item(Key={"video_id": video_id})
     item = response.get("Item")
 
     if not item:
         return _build_response(
             404,
-            {"message": "Imagen no encontrada.", "image_id": image_id},
+            {"message": "Video no encontrado.", "video_id": video_id},
         )
 
     return _build_response(
         200,
         {
-            "message": "Imagen obtenida correctamente.",
-            "image": item,
+            "message": "Video obtenido correctamente.",
+            "video": item,
         },
     )
 
 
-def _list_images(table):
+def _list_videos(table):
     items = []
     scan_kwargs = {}
 
@@ -198,32 +198,32 @@ def _list_images(table):
     return _build_response(
         200,
         {
-            "message": "Imagenes obtenidas correctamente.",
+            "message": "Videos obtenidos correctamente.",
             "count": len(items),
-            "images": items,
+            "videos": items,
         },
     )
 
 
 def lambda_handler(event, context):
     method = (event.get("httpMethod") or "GET").upper()
-    image_id = (event.get("pathParameters") or {}).get("image_id")
+    video_id = (event.get("pathParameters") or {}).get("video_id")
 
     try:
         table = _get_table()
 
         if method == "GET":
-            if image_id:
-                return _get_image(table, image_id)
-            return _list_images(table)
+            if video_id:
+                return _get_video(table, video_id)
+            return _list_videos(table)
 
         if method == "POST":
             body = _parse_body(event)
-            return _create_image(table, body)
+            return _create_video(table, body)
 
         if method == "PUT":
             body = _parse_body(event)
-            return _update_image(table, image_id, body)
+            return _update_video(table, video_id, body)
 
         return _build_response(
             405,
@@ -238,13 +238,13 @@ def lambda_handler(event, context):
             if method == "POST":
                 return _build_response(
                     409,
-                    {"message": "Ya existe una imagen con ese image_id."},
+                    {"message": "Ya existe un video con ese video_id."},
                 )
 
             if method == "PUT":
                 return _build_response(
                     404,
-                    {"message": "Imagen no encontrada.", "image_id": image_id},
+                    {"message": "Video no encontrado.", "video_id": video_id},
                 )
 
         return _build_response(

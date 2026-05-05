@@ -8,23 +8,27 @@ from botocore.exceptions import BotoCoreError, ClientError
 
 dynamodb = boto3.resource("dynamodb", region_name="us-west-1")
 
-REQUIRED_IMAGE_FIELDS = (
-    "image_id",
-    "image_title",
-    "image_url",
-    "image_alt",
-    "image_date",
-    "image_order",
-    "image_enabled",
+REQUIRED_NEWS_FIELDS = (
+    "news_id",
+    "news_image",
+    "news_date",
+    "news_state",
+    "news_enabled",
+    "news_category",
+    "news_program_by",
+    "news_tags",
+    "news_text",
 )
 
-UPDATABLE_IMAGE_FIELDS = (
-    "image_title",
-    "image_url",
-    "image_alt",
-    "image_date",
-    "image_order",
-    "image_enabled",
+UPDATABLE_NEWS_FIELDS = (
+    "news_image",
+    "news_date",
+    "news_state",
+    "news_enabled",
+    "news_category",
+    "news_program_by",
+    "news_tags",
+    "news_text",
 )
 
 
@@ -46,9 +50,9 @@ def _build_response(status_code, body):
 
 
 def _get_table():
-    table_name = os.environ.get("IMAGES_TABLE_NAME", "images")
+    table_name = os.environ.get("NEWS_TABLE_NAME", "news")
     if not table_name:
-        raise ValueError("Falta la variable de entorno IMAGES_TABLE_NAME.")
+        raise ValueError("Falta la variable de entorno NEWS_TABLE_NAME.")
     return dynamodb.Table(table_name)
 
 
@@ -71,59 +75,55 @@ def _parse_body(event):
 
 
 def _validate_required_fields(body):
-    missing_fields = [field for field in REQUIRED_IMAGE_FIELDS if field not in body]
+    missing_fields = [field for field in REQUIRED_NEWS_FIELDS if field not in body]
     if missing_fields:
         raise ValueError(
             f"Faltan campos obligatorios: {', '.join(missing_fields)}."
         )
 
-    _validate_image_field_types(body)
+    _validate_news_field_types(body)
 
 
-def _validate_image_field_types(fields):
-    if "image_enabled" in fields and not isinstance(fields["image_enabled"], bool):
-        raise ValueError("El campo image_enabled debe ser booleano.")
-
-    if "image_order" in fields and (
-        not isinstance(fields["image_order"], int)
-        or isinstance(fields["image_order"], bool)
-    ):
-        raise ValueError("El campo image_order debe ser numerico entero.")
+def _validate_news_field_types(fields):
+    if "news_enabled" in fields and not isinstance(fields["news_enabled"], bool):
+        raise ValueError("El campo news_enabled debe ser booleano.")
 
 
-def _create_image(table, body):
+def _create_news(table, body):
     _validate_required_fields(body)
 
-    image = {
-        "image_id": body["image_id"],
-        "image_title": body["image_title"],
-        "image_url": body["image_url"],
-        "image_alt": body["image_alt"],
-        "image_date": body["image_date"],
-        "image_order": body["image_order"],
-        "image_enabled": body["image_enabled"],
+    news = {
+        "news_id": body["news_id"],
+        "news_image": body["news_image"],
+        "news_date": body["news_date"],
+        "news_state": body["news_state"],
+        "news_enabled": body["news_enabled"],
+        "news_category": body["news_category"],
+        "news_program_by": body["news_program_by"],
+        "news_tags": body["news_tags"],
+        "news_text": body["news_text"],
     }
 
     table.put_item(
-        Item=image,
-        ConditionExpression="attribute_not_exists(image_id)",
+        Item=news,
+        ConditionExpression="attribute_not_exists(news_id)",
     )
 
     return _build_response(
         201,
         {
-            "message": "Imagen creada correctamente.",
-            "image": image,
+            "message": "Noticia creada correctamente.",
+            "news": news,
         },
     )
 
 
-def _update_image(table, image_id, body):
-    if not image_id:
-        raise ValueError("Debes enviar image_id en la URL.")
+def _update_news(table, news_id, body):
+    if not news_id:
+        raise ValueError("Debes enviar news_id en la URL.")
 
     update_fields = {
-        key: body[key] for key in UPDATABLE_IMAGE_FIELDS if key in body
+        key: body[key] for key in UPDATABLE_NEWS_FIELDS if key in body
     }
 
     if not update_fields:
@@ -131,7 +131,7 @@ def _update_image(table, image_id, body):
             "Debes enviar al menos un campo para actualizar."
         )
 
-    _validate_image_field_types(update_fields)
+    _validate_news_field_types(update_fields)
 
     expression_attribute_names = {}
     expression_attribute_values = {}
@@ -145,43 +145,43 @@ def _update_image(table, image_id, body):
         update_parts.append(f"{name_key} = {value_key}")
 
     response = table.update_item(
-        Key={"image_id": image_id},
+        Key={"news_id": news_id},
         UpdateExpression="SET " + ", ".join(update_parts),
         ExpressionAttributeNames=expression_attribute_names,
         ExpressionAttributeValues=expression_attribute_values,
-        ConditionExpression="attribute_exists(image_id)",
+        ConditionExpression="attribute_exists(news_id)",
         ReturnValues="ALL_NEW",
     )
 
     return _build_response(
         200,
         {
-            "message": "Imagen actualizada correctamente.",
-            "image": response.get("Attributes", {}),
+            "message": "Noticia actualizada correctamente.",
+            "news": response.get("Attributes", {}),
         },
     )
 
 
-def _get_image(table, image_id):
-    response = table.get_item(Key={"image_id": image_id})
+def _get_news(table, news_id):
+    response = table.get_item(Key={"news_id": news_id})
     item = response.get("Item")
 
     if not item:
         return _build_response(
             404,
-            {"message": "Imagen no encontrada.", "image_id": image_id},
+            {"message": "Noticia no encontrada.", "news_id": news_id},
         )
 
     return _build_response(
         200,
         {
-            "message": "Imagen obtenida correctamente.",
-            "image": item,
+            "message": "Noticia obtenida correctamente.",
+            "news": item,
         },
     )
 
 
-def _list_images(table):
+def _list_news(table):
     items = []
     scan_kwargs = {}
 
@@ -198,32 +198,32 @@ def _list_images(table):
     return _build_response(
         200,
         {
-            "message": "Imagenes obtenidas correctamente.",
+            "message": "Noticias obtenidas correctamente.",
             "count": len(items),
-            "images": items,
+            "news": items,
         },
     )
 
 
 def lambda_handler(event, context):
     method = (event.get("httpMethod") or "GET").upper()
-    image_id = (event.get("pathParameters") or {}).get("image_id")
+    news_id = (event.get("pathParameters") or {}).get("news_id")
 
     try:
         table = _get_table()
 
         if method == "GET":
-            if image_id:
-                return _get_image(table, image_id)
-            return _list_images(table)
+            if news_id:
+                return _get_news(table, news_id)
+            return _list_news(table)
 
         if method == "POST":
             body = _parse_body(event)
-            return _create_image(table, body)
+            return _create_news(table, body)
 
         if method == "PUT":
             body = _parse_body(event)
-            return _update_image(table, image_id, body)
+            return _update_news(table, news_id, body)
 
         return _build_response(
             405,
@@ -238,13 +238,13 @@ def lambda_handler(event, context):
             if method == "POST":
                 return _build_response(
                     409,
-                    {"message": "Ya existe una imagen con ese image_id."},
+                    {"message": "Ya existe una noticia con ese news_id."},
                 )
 
             if method == "PUT":
                 return _build_response(
                     404,
-                    {"message": "Imagen no encontrada.", "image_id": image_id},
+                    {"message": "Noticia no encontrada.", "news_id": news_id},
                 )
 
         return _build_response(

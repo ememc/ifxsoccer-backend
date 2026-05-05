@@ -1,0 +1,4 @@
+{
+  "httpMethod": "POST",
+  "body": "{\"news_id\":\"4a2ed845-defc-4216-9c7e-40f4994685b8\",\"news_image\":\"\",\"news_date\":\"\",\"news_state\":\"\",\"news_enabled\":true,\"news_category\":\"\",\"news_program_by\":\"\",\"news_tags\":\"\",\"news_text\":\"\"}"
+}
