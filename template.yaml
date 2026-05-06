@@ -19,10 +19,17 @@ Parameters:
     Type: String
     Default: images
     Description: "Nombre de la tabla DynamoDB usada por el lambda images"
+<<<<<<< HEAD
   HeroTableName:
     Type: String
     Default: hero
     Description: "Nombre de la tabla DynamoDB usada por el lambda hero"
+=======
+  VideosTableName:
+    Type: String
+    Default: videos
+    Description: "Nombre de la tabla DynamoDB usada por el lambda videos"
+>>>>>>> aad4b624f80b0bf7af2ed4bc44dbe63a4ba0c417
 
 Resources:
   AuthValidateUserFunction:
@@ -97,16 +104,24 @@ Resources:
             Path: /images/{image_id}
             Method: put
 
+<<<<<<< HEAD
   HeroFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: hero/
+=======
+  VideosFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: videos/
+>>>>>>> aad4b624f80b0bf7af2ed4bc44dbe63a4ba0c417
       Handler: app.lambda_handler
       Runtime: python3.14
       Architectures:
         - x86_64
       Environment:
         Variables:
+<<<<<<< HEAD
           HERO_TABLE_NAME: !Ref HeroTableName
       Policies:
         - DynamoDBCrudPolicy:
@@ -131,6 +146,32 @@ Resources:
           Type: Api
           Properties:
             Path: /hero/{hero_id}
+=======
+          VIDEOS_TABLE_NAME: !Ref VideosTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref VideosTableName
+      Events:
+        VideosList:
+          Type: Api
+          Properties:
+            Path: /videos
+            Method: get
+        VideosCreate:
+          Type: Api
+          Properties:
+            Path: /videos
+            Method: post
+        VideosGetById:
+          Type: Api
+          Properties:
+            Path: /videos/{video_id}
+            Method: get
+        VideosUpdate:
+          Type: Api
+          Properties:
+            Path: /videos/{video_id}
+>>>>>>> aad4b624f80b0bf7af2ed4bc44dbe63a4ba0c417
             Method: put
 
 Outputs:
@@ -161,6 +202,7 @@ Outputs:
   ImagesFunctionIamRole:
     Description: "Implicit IAM Role created for Images function"
     Value: !GetAtt ImagesFunctionRole.Arn
+<<<<<<< HEAD
   HeroApi:
     Description: "API Gateway endpoint URL for Prod stage for Hero function"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/Prod/hero/"
@@ -170,3 +212,14 @@ Outputs:
   HeroFunctionIamRole:
     Description: "Implicit IAM Role created for Hero function"
     Value: !GetAtt HeroFunctionRole.Arn
+=======
+  VideosApi:
+    Description: "API Gateway endpoint URL for Prod stage for Videos function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/Prod/videos"
+  VideosFunction:
+    Description: "Videos Lambda Function ARN"
+    Value: !GetAtt VideosFunction.Arn
+  VideosFunctionIamRole:
+    Description: "Implicit IAM Role created for Videos function"
+    Value: !GetAtt VideosFunctionRole.Arn
+>>>>>>> aad4b624f80b0bf7af2ed4bc44dbe63a4ba0c417

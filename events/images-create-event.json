@@ -3,5 +3,5 @@
   "pathParameters": {
     "image_id": "b5779f1b-93c9-4039-bc58-70c76e1df8ad"
   },
-  "body": "{\"image_title\":\"U19 A-Junioren Bundesliga – SpVgg Greuther Fürth vs FC Car\",\"image_url\":\"https://cdn.ifxsoccer.com/wp-content/uploads/20240729152720/German-Youth-Soccer-Liga-U19-30-1024x682.webp\",\"image_date\":\"2026-04-25\",\"image_enabled\":false}"
+  "body": "{\"image_id\":\"b5779f1b-93c9-4039-bc58-70c76e1df8ad\",\"image_title\":\"U19 A-Junioren Bundesliga – SpVgg Greuther Fürth vs FC Car\",\"image_url\":\"https://cdn.ifxsoccer.com/wp-content/uploads/20240729152720/German-Youth-Soccer-Liga-U19-30-1024x682.webp\",\"image_alt\":\"U19 A-Junioren Bundesliga partido SpVgg Greuther Fürth vs FC Car\",\"image_date\":\"2026-04-25\",\"image_order\":1,\"image_enabled\":false}"
 }

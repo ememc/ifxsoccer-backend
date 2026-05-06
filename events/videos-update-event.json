@@ -1,0 +1,7 @@
+{
+  "httpMethod": "PUT",
+  "pathParameters": {
+    "video_id": "4a2ed845-defc-4216-9c7e-40f4994685b8"
+  },
+  "body": "{\"video_alt\":\"\",\"video_date\":\"2026-04-23\",\"video_enabled\":true,\"video_order\":2,\"video_title\":\"U19 A-Junioren Bundesliga – SpVgg Greuther Fürth vs FC Carl\",\"video_url\":\"https://s3.us-west-1.amazonaws.com/cdn.ifxsoccer.com/wp-content/uploads/2019/01/IFX-Soccer-playing-soccer-internationally-862x647.jpg\"}"
+}

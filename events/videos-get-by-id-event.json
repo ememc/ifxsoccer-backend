@@ -1,0 +1,6 @@
+{
+  "httpMethod": "GET",
+  "pathParameters": {
+    "video_id": "4a2ed845-defc-4216-9c7e-40f4994685b8"
+  }
+}
