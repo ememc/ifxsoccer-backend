@@ -1,17 +1,4 @@
 {
-  "resource": "/program/{program_id}",
-  "path": "/program/PRG001",
   "httpMethod": "GET",
-  "headers": {
-    "Content-Type": "application/json"
-  },
-  "requestContext": {
-    "resourcePath": "/program/{program_id}",
-    "httpMethod": "GET",
-    "path": "/Prod/program/PRG001"
-  },
-  "pathParameters": {
-    "program_id": "PRG001"
-  },
-  "isBase64Encoded": false
+  "pathParameters": null
 }

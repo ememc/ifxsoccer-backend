@@ -19,17 +19,14 @@ Parameters:
     Type: String
     Default: images
     Description: "Nombre de la tabla DynamoDB usada por el lambda images"
-<<<<<<< HEAD
   HeroTableName:
     Type: String
-    Default: hero
+    Default: heros
     Description: "Nombre de la tabla DynamoDB usada por el lambda hero"
-=======
   VideosTableName:
     Type: String
     Default: videos
     Description: "Nombre de la tabla DynamoDB usada por el lambda videos"
->>>>>>> aad4b624f80b0bf7af2ed4bc44dbe63a4ba0c417
 
 Resources:
   AuthValidateUserFunction:
@@ -62,11 +59,26 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref ProgramTableName
       Events:
+        ProgramList:
+          Type: Api
+          Properties:
+            Path: /program
+            Method: get
+        ProgramCreate:
+          Type: Api
+          Properties:
+            Path: /program
+            Method: post
         ProgramGetById:
           Type: Api
           Properties:
             Path: /program/{program_id}
             Method: get
+        ProgramUpdate:
+          Type: Api
+          Properties:
+            Path: /program/{program_id}
+            Method: put
 
   ImagesFunction:
     Type: AWS::Serverless::Function
@@ -104,24 +116,16 @@ Resources:
             Path: /images/{image_id}
             Method: put
 
-<<<<<<< HEAD
   HeroFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: hero/
-=======
-  VideosFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: videos/
->>>>>>> aad4b624f80b0bf7af2ed4bc44dbe63a4ba0c417
       Handler: app.lambda_handler
       Runtime: python3.14
       Architectures:
         - x86_64
       Environment:
         Variables:
-<<<<<<< HEAD
           HERO_TABLE_NAME: !Ref HeroTableName
       Policies:
         - DynamoDBCrudPolicy:
@@ -146,7 +150,18 @@ Resources:
           Type: Api
           Properties:
             Path: /hero/{hero_id}
-=======
+            Method: put
+
+  VideosFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: videos/
+      Handler: app.lambda_handler
+      Runtime: python3.14
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
           VIDEOS_TABLE_NAME: !Ref VideosTableName
       Policies:
         - DynamoDBCrudPolicy:
@@ -171,7 +186,6 @@ Resources:
           Type: Api
           Properties:
             Path: /videos/{video_id}
->>>>>>> aad4b624f80b0bf7af2ed4bc44dbe63a4ba0c417
             Method: put
 
 Outputs:
@@ -186,7 +200,7 @@ Outputs:
     Value: !GetAtt AuthValidateUserFunctionRole.Arn
   ProgramApi:
     Description: "API Gateway endpoint URL for Prod stage for Program function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/Prod/program/{program_id}/"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/Prod/program/"
   ProgramFunction:
     Description: "Program Lambda Function ARN"
     Value: !GetAtt ProgramFunction.Arn
@@ -202,7 +216,6 @@ Outputs:
   ImagesFunctionIamRole:
     Description: "Implicit IAM Role created for Images function"
     Value: !GetAtt ImagesFunctionRole.Arn
-<<<<<<< HEAD
   HeroApi:
     Description: "API Gateway endpoint URL for Prod stage for Hero function"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/Prod/hero/"
@@ -212,7 +225,6 @@ Outputs:
   HeroFunctionIamRole:
     Description: "Implicit IAM Role created for Hero function"
     Value: !GetAtt HeroFunctionRole.Arn
-=======
   VideosApi:
     Description: "API Gateway endpoint URL for Prod stage for Videos function"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/Prod/videos"
@@ -222,4 +234,3 @@ Outputs:
   VideosFunctionIamRole:
     Description: "Implicit IAM Role created for Videos function"
     Value: !GetAtt VideosFunctionRole.Arn
->>>>>>> aad4b624f80b0bf7af2ed4bc44dbe63a4ba0c417

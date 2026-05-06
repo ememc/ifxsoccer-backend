@@ -1,0 +1,7 @@
+{
+  "httpMethod": "PUT",
+  "pathParameters": {
+    "program_id": "PRG001"
+  },
+  "body": "{\"program_title\":\"International Soccer Program 2026\",\"program_description\":\"Updated player development experience.\",\"program_enabled\":true,\"program_status\":\"active\",\"program_date\":\"2026-05-06\"}"
+}

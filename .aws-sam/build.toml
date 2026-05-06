@@ -36,4 +36,13 @@ manifest_hash = "68b329da9893e34099c7d8ad5cb9c940"
 packagetype = "Zip"
 functions = ["HeroFunction"]
 
+[function_build_definitions.6bbe07e7-c76f-495c-a03b-42b746f69b85]
+codeuri = "D:\\IFXweb\\backend\\videos"
+runtime = "python3.14"
+architecture = "x86_64"
+handler = "app.lambda_handler"
+manifest_hash = "81051bcc2cf1bedf378224b0a93e2877"
+packagetype = "Zip"
+functions = ["VideosFunction"]
+
 [layer_build_definitions]
