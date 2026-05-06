@@ -1,0 +1,7 @@
+{
+  "httpMethod": "POST",
+  "pathParameters": {
+    "hero_id": "hero-home-001"
+  },
+  "body": "{\"hero_id\":\"hero-home-001\",\"hero_button\":\"Learn more\",\"hero_call\":\"Train with IFX Soccer\",\"hero_date\":\"2026-05-05\",\"hero_enabled\":true,\"hero_image\":\"https://cdn.ifxsoccer.com/wp-content/uploads/hero.webp\",\"hero_title\":\"IFX Soccer Programs\"}"
+}

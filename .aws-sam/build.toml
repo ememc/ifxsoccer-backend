@@ -27,4 +27,13 @@ manifest_hash = "68b329da9893e34099c7d8ad5cb9c940"
 packagetype = "Zip"
 functions = ["ImagesFunction"]
 
+[function_build_definitions.144bb033-f201-4096-8c78-1048eb116899]
+codeuri = "D:\\IFXweb\\backend\\hero"
+runtime = "python3.14"
+architecture = "x86_64"
+handler = "app.lambda_handler"
+manifest_hash = "68b329da9893e34099c7d8ad5cb9c940"
+packagetype = "Zip"
+functions = ["HeroFunction"]
+
 [layer_build_definitions]

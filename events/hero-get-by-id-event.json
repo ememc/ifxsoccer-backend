@@ -1,0 +1,6 @@
+{
+  "httpMethod": "GET",
+  "pathParameters": {
+    "hero_id": "hero-home-001"
+  }
+}

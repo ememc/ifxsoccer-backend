@@ -19,6 +19,10 @@ Parameters:
     Type: String
     Default: images
     Description: "Nombre de la tabla DynamoDB usada por el lambda images"
+  HeroTableName:
+    Type: String
+    Default: hero
+    Description: "Nombre de la tabla DynamoDB usada por el lambda hero"
 
 Resources:
   AuthValidateUserFunction:
@@ -93,6 +97,42 @@ Resources:
             Path: /images/{image_id}
             Method: put
 
+  HeroFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: hero/
+      Handler: app.lambda_handler
+      Runtime: python3.14
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          HERO_TABLE_NAME: !Ref HeroTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref HeroTableName
+      Events:
+        HeroList:
+          Type: Api
+          Properties:
+            Path: /hero
+            Method: get
+        HeroCreate:
+          Type: Api
+          Properties:
+            Path: /hero
+            Method: post
+        HeroGetById:
+          Type: Api
+          Properties:
+            Path: /hero/{hero_id}
+            Method: get
+        HeroUpdate:
+          Type: Api
+          Properties:
+            Path: /hero/{hero_id}
+            Method: put
+
 Outputs:
   AuthValidateUserApi:
     Description: "API Gateway endpoint URL for Prod stage for Auth validation function"
@@ -121,3 +161,12 @@ Outputs:
   ImagesFunctionIamRole:
     Description: "Implicit IAM Role created for Images function"
     Value: !GetAtt ImagesFunctionRole.Arn
+  HeroApi:
+    Description: "API Gateway endpoint URL for Prod stage for Hero function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/Prod/hero/"
+  HeroFunction:
+    Description: "Hero Lambda Function ARN"
+    Value: !GetAtt HeroFunction.Arn
+  HeroFunctionIamRole:
+    Description: "Implicit IAM Role created for Hero function"
+    Value: !GetAtt HeroFunctionRole.Arn
