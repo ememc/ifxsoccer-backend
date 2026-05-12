@@ -10,6 +10,9 @@ dynamodb = boto3.resource("dynamodb", region_name="us-west-1")
 
 REQUIRED_NEWS_FIELDS = (
     "news_id",
+    "news_title",
+    "news_principal",
+    "news_description",
     "news_image",
     "news_date",
     "news_state",
@@ -21,6 +24,9 @@ REQUIRED_NEWS_FIELDS = (
 )
 
 UPDATABLE_NEWS_FIELDS = (
+    "news_title",
+    "news_principal",
+    "news_description",
     "news_image",
     "news_date",
     "news_state",
@@ -94,6 +100,9 @@ def _create_news(table, body):
 
     news = {
         "news_id": body["news_id"],
+        "news_title": body["news_title"],
+        "news_principal": body["news_principal"],
+        "news_description": body["news_description"],
         "news_image": body["news_image"],
         "news_date": body["news_date"],
         "news_state": body["news_state"],

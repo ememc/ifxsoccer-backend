@@ -3,5 +3,5 @@
   "pathParameters": {
     "news_id": "4a2ed845-defc-4216-9c7e-40f4994685b8"
   },
-  "body": "{\"news_image\":\"\",\"news_date\":\"\",\"news_state\":\"\",\"news_enabled\":false,\"news_category\":\"\",\"news_program_by\":\"\",\"news_tags\":\"\",\"news_text\":\"\"}"
+  "body": "{\"news_title\":\"\",\"news_principal\":\"\",\"news_description\":\"\",\"news_image\":\"\",\"news_date\":\"\",\"news_state\":\"\",\"news_enabled\":false,\"news_category\":\"\",\"news_program_by\":\"\",\"news_tags\":\"\",\"news_text\":\"\"}"
 }
