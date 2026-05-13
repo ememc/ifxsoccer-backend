@@ -8,24 +8,57 @@ from botocore.exceptions import BotoCoreError, ClientError
 
 dynamodb = boto3.resource("dynamodb", region_name="us-west-1")
 
-REQUIRED_HERO_FIELDS = (
-    "hero_id",
-    "hero_button",
-    "hero_call",
-    "hero_date",
-    "hero_enabled",
-    "hero_image",
-    "hero_title",
+REQUIRED_DESTINATION_FIELDS = (
+    "destination_id",
+    "destination_category",
+    "destination_date",
+    "destination_title",
+    "destination_description",
+    "destination_hero",
+    "destination_section",
+    "destination_cities",
+    "destination_academies",
+    "destination_state",
+    "destination_tags",
+    "destination_text",
 )
 
-UPDATABLE_HERO_FIELDS = (
-    "hero_button",
-    "hero_call",
-    "hero_date",
-    "hero_enabled",
-    "hero_image",
-    "hero_title",
+UPDATABLE_DESTINATION_FIELDS = (
+    "destination_category",
+    "destination_date",
+    "destination_title",
+    "destination_description",
+    "destination_hero",
+    "destination_section",
+    "destination_cities",
+    "destination_academies",
+    "destination_state",
+    "destination_tags",
+    "destination_text",
 )
+
+LIST_FIELD_SCHEMAS = {
+    "destination_hero": ("image_text", "image_url"),
+    "destination_section": (
+        "section_image",
+        "section_order",
+        "section_text",
+        "section_title",
+    ),
+    "destination_cities": (
+        "city_image",
+        "city_order",
+        "city_text",
+        "city_title",
+    ),
+    "destination_academies": (
+        "academy_image",
+        "academy_order",
+        "academy_text",
+        "academy_title",
+        "academy_target",
+    ),
+}
 
 
 class DecimalEncoder(json.JSONEncoder):
@@ -51,9 +84,9 @@ def _build_response(status_code, body):
 
 
 def _get_table():
-    table_name = os.environ.get("HERO_TABLE_NAME", "heros")
+    table_name = os.environ.get("DESTINATION_TABLE_NAME", "destinations")
     if not table_name:
-        raise ValueError("Falta la variable de entorno HERO_TABLE_NAME.")
+        raise ValueError("Falta la variable de entorno DESTINATION_TABLE_NAME.")
     return dynamodb.Table(table_name)
 
 
@@ -76,49 +109,63 @@ def _parse_body(event):
 
 
 def _validate_required_fields(body):
-    missing_fields = [field for field in REQUIRED_HERO_FIELDS if field not in body]
+    missing_fields = [field for field in REQUIRED_DESTINATION_FIELDS if field not in body]
     if missing_fields:
         raise ValueError(
             f"Faltan campos obligatorios: {', '.join(missing_fields)}."
         )
 
-    if not isinstance(body.get("hero_enabled"), bool):
-        raise ValueError("El campo hero_enabled debe ser booleano.")
+    _validate_destination_field_types(body)
 
 
-def _create_hero(table, body):
+def _validate_destination_field_types(fields):
+    for field_name, required_keys in LIST_FIELD_SCHEMAS.items():
+        if field_name not in fields:
+            continue
+
+        items = fields[field_name]
+        if not isinstance(items, list):
+            raise ValueError(f"El campo {field_name} debe ser una lista.")
+
+        for index, item in enumerate(items):
+            if not isinstance(item, dict):
+                raise ValueError(
+                    f"El campo {field_name}[{index}] debe ser un objeto."
+                )
+
+            missing_keys = [key for key in required_keys if key not in item]
+            if missing_keys:
+                raise ValueError(
+                    "Faltan campos en "
+                    f"{field_name}[{index}]: {', '.join(missing_keys)}."
+                )
+
+
+def _create_destination(table, body):
     _validate_required_fields(body)
 
-    hero = {
-        "hero_id": body["hero_id"],
-        "hero_button": body["hero_button"],
-        "hero_call": body["hero_call"],
-        "hero_date": body["hero_date"],
-        "hero_enabled": body["hero_enabled"],
-        "hero_image": body["hero_image"],
-        "hero_title": body["hero_title"],
-    }
+    destination = {field: body[field] for field in REQUIRED_DESTINATION_FIELDS}
 
     table.put_item(
-        Item=hero,
-        ConditionExpression="attribute_not_exists(hero_id)",
+        Item=destination,
+        ConditionExpression="attribute_not_exists(destination_id)",
     )
 
     return _build_response(
         201,
         {
-            "message": "Hero creado correctamente.",
-            "hero": hero,
+            "message": "Destino creado correctamente.",
+            "destination": destination,
         },
     )
 
 
-def _update_hero(table, hero_id, body):
-    if not hero_id:
-        raise ValueError("Debes enviar hero_id en la URL.")
+def _update_destination(table, destination_id, body):
+    if not destination_id:
+        raise ValueError("Debes enviar destination_id en la URL.")
 
     update_fields = {
-        key: body[key] for key in UPDATABLE_HERO_FIELDS if key in body
+        key: body[key] for key in UPDATABLE_DESTINATION_FIELDS if key in body
     }
 
     if not update_fields:
@@ -126,10 +173,7 @@ def _update_hero(table, hero_id, body):
             "Debes enviar al menos un campo para actualizar."
         )
 
-    if "hero_enabled" in update_fields and not isinstance(
-        update_fields["hero_enabled"], bool
-    ):
-        raise ValueError("El campo hero_enabled debe ser booleano.")
+    _validate_destination_field_types(update_fields)
 
     expression_attribute_names = {}
     expression_attribute_values = {}
@@ -143,43 +187,43 @@ def _update_hero(table, hero_id, body):
         update_parts.append(f"{name_key} = {value_key}")
 
     response = table.update_item(
-        Key={"hero_id": hero_id},
+        Key={"destination_id": destination_id},
         UpdateExpression="SET " + ", ".join(update_parts),
         ExpressionAttributeNames=expression_attribute_names,
         ExpressionAttributeValues=expression_attribute_values,
-        ConditionExpression="attribute_exists(hero_id)",
+        ConditionExpression="attribute_exists(destination_id)",
         ReturnValues="ALL_NEW",
     )
 
     return _build_response(
         200,
         {
-            "message": "Hero actualizado correctamente.",
-            "hero": response.get("Attributes", {}),
+            "message": "Destino actualizado correctamente.",
+            "destination": response.get("Attributes", {}),
         },
     )
 
 
-def _get_hero(table, hero_id):
-    response = table.get_item(Key={"hero_id": hero_id})
+def _get_destination(table, destination_id):
+    response = table.get_item(Key={"destination_id": destination_id})
     item = response.get("Item")
 
     if not item:
         return _build_response(
             404,
-            {"message": "Hero no encontrado.", "hero_id": hero_id},
+            {"message": "Destino no encontrado.", "destination_id": destination_id},
         )
 
     return _build_response(
         200,
         {
-            "message": "Hero obtenido correctamente.",
-            "hero": item,
+            "message": "Destino obtenido correctamente.",
+            "destination": item,
         },
     )
 
 
-def _list_hero(table):
+def _list_destinations(table):
     items = []
     scan_kwargs = {}
 
@@ -196,16 +240,16 @@ def _list_hero(table):
     return _build_response(
         200,
         {
-            "message": "Hero obtenidos correctamente.",
+            "message": "Destinos obtenidos correctamente.",
             "count": len(items),
-            "hero": items,
+            "destinations": items,
         },
     )
 
 
 def lambda_handler(event, context):
     method = (event.get("httpMethod") or "GET").upper()
-    hero_id = (event.get("pathParameters") or {}).get("hero_id")
+    destination_id = (event.get("pathParameters") or {}).get("destination_id")
 
     try:
         if method == "OPTIONS":
@@ -214,17 +258,17 @@ def lambda_handler(event, context):
         table = _get_table()
 
         if method == "GET":
-            if hero_id:
-                return _get_hero(table, hero_id)
-            return _list_hero(table)
+            if destination_id:
+                return _get_destination(table, destination_id)
+            return _list_destinations(table)
 
         if method == "POST":
             body = _parse_body(event)
-            return _create_hero(table, body)
+            return _create_destination(table, body)
 
         if method == "PUT":
             body = _parse_body(event)
-            return _update_hero(table, hero_id, body)
+            return _update_destination(table, destination_id, body)
 
         return _build_response(
             405,
@@ -239,13 +283,16 @@ def lambda_handler(event, context):
             if method == "POST":
                 return _build_response(
                     409,
-                    {"message": "Ya existe un hero con ese hero_id."},
+                    {"message": "Ya existe un destino con ese destination_id."},
                 )
 
             if method == "PUT":
                 return _build_response(
                     404,
-                    {"message": "Hero no encontrado.", "hero_id": hero_id},
+                    {
+                        "message": "Destino no encontrado.",
+                        "destination_id": destination_id,
+                    },
                 )
 
         return _build_response(

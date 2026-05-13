@@ -4,12 +4,22 @@ import json
 def _build_response(status_code, body):
     return {
         "statusCode": status_code,
-        "headers": {"Content-Type": "application/json"},
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "Content-Type,Authorization",
+            "Access-Control-Allow-Methods": "GET,POST,PUT,OPTIONS",
+        },
         "body": json.dumps(body),
     }
 
 
 def lambda_handler(event, context):
+    method = (event.get("httpMethod") or "POST").upper()
+
+    if method == "OPTIONS":
+        return _build_response(200, {"message": "CORS preflight OK."})
+
     body = event.get("body")
 
     if isinstance(body, str):

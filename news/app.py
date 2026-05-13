@@ -50,7 +50,12 @@ class DecimalEncoder(json.JSONEncoder):
 def _build_response(status_code, body):
     return {
         "statusCode": status_code,
-        "headers": {"Content-Type": "application/json"},
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "Content-Type,Authorization",
+            "Access-Control-Allow-Methods": "GET,POST,PUT,OPTIONS",
+        },
         "body": json.dumps(body, cls=DecimalEncoder),
     }
 
@@ -219,6 +224,9 @@ def lambda_handler(event, context):
     news_id = (event.get("pathParameters") or {}).get("news_id")
 
     try:
+        if method == "OPTIONS":
+            return _build_response(200, {"message": "CORS preflight OK."})
+
         table = _get_table()
 
         if method == "GET":

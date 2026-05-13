@@ -27,8 +27,41 @@ Parameters:
     Type: String
     Default: videos
     Description: "Nombre de la tabla DynamoDB usada por el lambda videos"
+  DestinationTableName:
+    Type: String
+    Default: destinations
+    Description: "Nombre de la tabla DynamoDB usada por el lambda destination"
 
 Resources:
+  ServerlessRestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Cors:
+        AllowOrigin: "'https://new.ifxsoccer.com'"
+        AllowHeaders: "'Content-Type,Authorization'"
+        AllowMethods: "'GET,POST,PUT,OPTIONS'"
+
+  ApiGatewayDefault4xxResponse:
+    Type: AWS::ApiGateway::GatewayResponse
+    Properties:
+      RestApiId: !Ref ServerlessRestApi
+      ResponseType: DEFAULT_4XX
+      ResponseParameters:
+        gatewayresponse.header.Access-Control-Allow-Origin: "'https://new.ifxsoccer.com'"
+        gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+        gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,PUT,OPTIONS'"
+
+  ApiGatewayDefault5xxResponse:
+    Type: AWS::ApiGateway::GatewayResponse
+    Properties:
+      RestApiId: !Ref ServerlessRestApi
+      ResponseType: DEFAULT_5XX
+      ResponseParameters:
+        gatewayresponse.header.Access-Control-Allow-Origin: "'https://new.ifxsoccer.com'"
+        gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+        gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,PUT,OPTIONS'"
+
   AuthValidateUserFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -41,6 +74,7 @@ Resources:
         AuthValidateUser:
           Type: Api
           Properties:
+            RestApiId: !Ref ServerlessRestApi
             Path: /auth/validate
             Method: post
 
@@ -62,21 +96,25 @@ Resources:
         ProgramList:
           Type: Api
           Properties:
+            RestApiId: !Ref ServerlessRestApi
             Path: /program
             Method: get
         ProgramCreate:
           Type: Api
           Properties:
+            RestApiId: !Ref ServerlessRestApi
             Path: /program
             Method: post
         ProgramGetById:
           Type: Api
           Properties:
+            RestApiId: !Ref ServerlessRestApi
             Path: /program/{program_id}
             Method: get
         ProgramUpdate:
           Type: Api
           Properties:
+            RestApiId: !Ref ServerlessRestApi
             Path: /program/{program_id}
             Method: put
 
@@ -98,21 +136,25 @@ Resources:
         ImagesList:
           Type: Api
           Properties:
+            RestApiId: !Ref ServerlessRestApi
             Path: /images
             Method: get
         ImagesCreate:
           Type: Api
           Properties:
+            RestApiId: !Ref ServerlessRestApi
             Path: /images
             Method: post
         ImagesGetById:
           Type: Api
           Properties:
+            RestApiId: !Ref ServerlessRestApi
             Path: /images/{image_id}
             Method: get
         ImagesUpdate:
           Type: Api
           Properties:
+            RestApiId: !Ref ServerlessRestApi
             Path: /images/{image_id}
             Method: put
 
@@ -134,22 +176,50 @@ Resources:
         HeroList:
           Type: Api
           Properties:
+            RestApiId: !Ref ServerlessRestApi
             Path: /hero
             Method: get
         HeroCreate:
           Type: Api
           Properties:
+            RestApiId: !Ref ServerlessRestApi
             Path: /hero
             Method: post
         HeroGetById:
           Type: Api
           Properties:
+            RestApiId: !Ref ServerlessRestApi
             Path: /hero/{hero_id}
             Method: get
         HeroUpdate:
           Type: Api
           Properties:
+            RestApiId: !Ref ServerlessRestApi
             Path: /hero/{hero_id}
+            Method: put
+        HeroListPlural:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ServerlessRestApi
+            Path: /heros
+            Method: get
+        HeroCreatePlural:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ServerlessRestApi
+            Path: /heros
+            Method: post
+        HeroGetByIdPlural:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ServerlessRestApi
+            Path: /heros/{hero_id}
+            Method: get
+        HeroUpdatePlural:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ServerlessRestApi
+            Path: /heros/{hero_id}
             Method: put
 
   VideosFunction:
@@ -170,22 +240,66 @@ Resources:
         VideosList:
           Type: Api
           Properties:
+            RestApiId: !Ref ServerlessRestApi
             Path: /videos
             Method: get
         VideosCreate:
           Type: Api
           Properties:
+            RestApiId: !Ref ServerlessRestApi
             Path: /videos
             Method: post
         VideosGetById:
           Type: Api
           Properties:
+            RestApiId: !Ref ServerlessRestApi
             Path: /videos/{video_id}
             Method: get
         VideosUpdate:
           Type: Api
           Properties:
+            RestApiId: !Ref ServerlessRestApi
             Path: /videos/{video_id}
+            Method: put
+
+  DestinationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: destination/
+      Handler: app.lambda_handler
+      Runtime: python3.14
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          DESTINATION_TABLE_NAME: !Ref DestinationTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DestinationTableName
+      Events:
+        DestinationList:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ServerlessRestApi
+            Path: /destination
+            Method: get
+        DestinationCreate:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ServerlessRestApi
+            Path: /destination
+            Method: post
+        DestinationGetById:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ServerlessRestApi
+            Path: /destination/{destination_id}
+            Method: get
+        DestinationUpdate:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ServerlessRestApi
+            Path: /destination/{destination_id}
             Method: put
 
 Outputs:
@@ -234,3 +348,12 @@ Outputs:
   VideosFunctionIamRole:
     Description: "Implicit IAM Role created for Videos function"
     Value: !GetAtt VideosFunctionRole.Arn
+  DestinationApi:
+    Description: "API Gateway endpoint URL for Prod stage for Destination function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/Prod/destination"
+  DestinationFunction:
+    Description: "Destination Lambda Function ARN"
+    Value: !GetAtt DestinationFunction.Arn
+  DestinationFunctionIamRole:
+    Description: "Implicit IAM Role created for Destination function"
+    Value: !GetAtt DestinationFunctionRole.Arn

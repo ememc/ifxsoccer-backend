@@ -1,0 +1,5 @@
+{
+  "httpMethod": "POST",
+  "pathParameters": null,
+  "body": "{\"destination_id\":\"4a2ed845-defc-4216-9c7e-40f4994685b8\",\"destination_category\":\"\",\"destination_date\":\"\",\"destination_title\":\"\",\"destination_description\":\"\",\"destination_hero\":[{\"image_text\":\"Train in Europe\",\"image_url\":\"https://cdn.ifxsoccer.com/programs/program-hero.webp\"}],\"destination_section\":[{\"section_image\":\"https://cdn.ifxsoccer.com/programs/section.webp\",\"section_order\":\"1\",\"section_text\":\"Daily training and competitive matches.\",\"section_title\":\"Development\"}],\"destination_cities\":[{\"city_image\":\"https://cdn.ifxsoccer.com/programs/section.webp\",\"city_order\":\"1\",\"city_text\":\"Daily training and competitive matches.\",\"city_title\":\"Development\"}],\"destination_academies\":[{\"academy_image\":\"https://cdn.ifxsoccer.com/programs/section.webp\",\"academy_order\":\"1\",\"academy_text\":\"Daily training and competitive matches.\",\"academy_title\":\"Development\",\"academy_target\":\"#\"}],\"destination_state\":\"\",\"destination_tags\":\"\",\"destination_text\":\"\"}"
+}
