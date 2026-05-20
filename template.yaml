@@ -69,6 +69,7 @@ Resources:
   AuthValidateUserFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: fn-ifxsoccer-auth-validate
       CodeUri: auth/
       Handler: app.lambda_handler
       Runtime: python3.14
@@ -85,6 +86,7 @@ Resources:
   ProgramFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: fn-ifxsoccer-program
       CodeUri: program/
       Handler: app.lambda_handler
       Runtime: python3.14
@@ -125,6 +127,7 @@ Resources:
   CategoryFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: fn-ifxsoccer-category
       CodeUri: category/
       Handler: app.lambda_handler
       Runtime: python3.14
@@ -140,27 +143,32 @@ Resources:
         CategoryList:
           Type: Api
           Properties:
+            RestApiId: !Ref ServerlessRestApi
             Path: /category
             Method: get
         CategoryCreate:
           Type: Api
           Properties:
+            RestApiId: !Ref ServerlessRestApi
             Path: /category
             Method: post
         CategoryGetById:
           Type: Api
           Properties:
+            RestApiId: !Ref ServerlessRestApi
             Path: /category/{category_id}
             Method: get
         CategoryUpdate:
           Type: Api
           Properties:
+            RestApiId: !Ref ServerlessRestApi
             Path: /category/{category_id}
             Method: put
 
   ImagesFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: fn-ifxsoccer-images
       CodeUri: images/
       Handler: app.lambda_handler
       Runtime: python3.14
@@ -201,6 +209,7 @@ Resources:
   HeroFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: fn-ifxsoccer-hero
       CodeUri: hero/
       Handler: app.lambda_handler
       Runtime: python3.14
@@ -265,6 +274,7 @@ Resources:
   VideosFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: fn-ifxsoccer-videos
       CodeUri: videos/
       Handler: app.lambda_handler
       Runtime: python3.14
@@ -305,6 +315,7 @@ Resources:
   DestinationFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: fn-ifxsoccer-destination
       CodeUri: destination/
       Handler: app.lambda_handler
       Runtime: python3.14

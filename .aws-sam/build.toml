@@ -45,4 +45,22 @@ manifest_hash = "81051bcc2cf1bedf378224b0a93e2877"
 packagetype = "Zip"
 functions = ["VideosFunction"]
 
+[function_build_definitions.8f1ccd64-96ec-44b5-bb13-d332e1d02440]
+codeuri = "D:\\IFXweb\\backend\\category"
+runtime = "python3.14"
+architecture = "x86_64"
+handler = "app.lambda_handler"
+manifest_hash = "81051bcc2cf1bedf378224b0a93e2877"
+packagetype = "Zip"
+functions = ["CategoryFunction"]
+
+[function_build_definitions.af7ecd3e-3b06-4569-b8da-0f54375b252e]
+codeuri = "D:\\IFXweb\\backend\\destination"
+runtime = "python3.14"
+architecture = "x86_64"
+handler = "app.lambda_handler"
+manifest_hash = "81051bcc2cf1bedf378224b0a93e2877"
+packagetype = "Zip"
+functions = ["DestinationFunction"]
+
 [layer_build_definitions]

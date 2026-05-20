@@ -1,0 +1,40 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "SAM: build",
+      "type": "shell",
+      "command": "sam build",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "SAM: deploy",
+      "type": "shell",
+      "command": "sam deploy",
+      "dependsOn": "SAM: build",
+      "problemMatcher": []
+    },
+    {
+      "label": "SAM: sync watch",
+      "type": "shell",
+      "command": "sam sync --watch",
+      "dependsOn": "SAM: build",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "SAM: sync functions code",
+      "type": "shell",
+      "command": "sam sync --code --stack-name lambda-python3-14 --region us-west-1 --resource AWS::Serverless::Function",
+      "dependsOn": "SAM: build",
+      "problemMatcher": []
+    },
+    {
+      "label": "SAM: validate",
+      "type": "shell",
+      "command": "sam validate --template-file template.yaml",
+      "problemMatcher": []
+    }
+  ]
+}

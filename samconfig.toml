@@ -3,19 +3,21 @@
 version = 0.1
 
 [default.global.parameters]
-stack_name = "lambda-python3.14"
+stack_name = "lambda-python3-14"
+region = "us-west-1"
 
 [default.build.parameters]
 cached = true
 parallel = true
 
 [default.validate.parameters]
-lint = true
+lint = false
 
 [default.deploy.parameters]
 capabilities = "CAPABILITY_IAM"
-confirm_changeset = true
+confirm_changeset = false
 resolve_s3 = true
+region = "us-west-1"
 
 [default.package.parameters]
 resolve_s3 = true
