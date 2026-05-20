@@ -15,6 +15,10 @@ Parameters:
     Type: String
     Default: programs
     Description: "Nombre de la tabla DynamoDB usada por el lambda program"
+  CategoryTableName:
+    Type: String
+    Default: categorys
+    Description: "Nombre de la tabla DynamoDB usada por el lambda category"
   ImagesTableName:
     Type: String
     Default: images
@@ -116,6 +120,42 @@ Resources:
           Properties:
             RestApiId: !Ref ServerlessRestApi
             Path: /program/{program_id}
+            Method: put
+
+  CategoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: category/
+      Handler: app.lambda_handler
+      Runtime: python3.14
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          CATEGORY_TABLE_NAME: !Ref CategoryTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref CategoryTableName
+      Events:
+        CategoryList:
+          Type: Api
+          Properties:
+            Path: /category
+            Method: get
+        CategoryCreate:
+          Type: Api
+          Properties:
+            Path: /category
+            Method: post
+        CategoryGetById:
+          Type: Api
+          Properties:
+            Path: /category/{category_id}
+            Method: get
+        CategoryUpdate:
+          Type: Api
+          Properties:
+            Path: /category/{category_id}
             Method: put
 
   ImagesFunction:
@@ -321,6 +361,15 @@ Outputs:
   ProgramFunctionIamRole:
     Description: "Implicit IAM Role created for Program function"
     Value: !GetAtt ProgramFunctionRole.Arn
+  CategoryApi:
+    Description: "API Gateway endpoint URL for Prod stage for Category function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/Prod/category/"
+  CategoryFunction:
+    Description: "Category Lambda Function ARN"
+    Value: !GetAtt CategoryFunction.Arn
+  CategoryFunctionIamRole:
+    Description: "Implicit IAM Role created for Category function"
+    Value: !GetAtt CategoryFunctionRole.Arn
   ImagesApi:
     Description: "API Gateway endpoint URL for Prod stage for Images function"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/Prod/images"
