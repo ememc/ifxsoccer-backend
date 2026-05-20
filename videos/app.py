@@ -16,6 +16,8 @@ REQUIRED_VIDEO_FIELDS = (
     "video_date",
     "video_order",
     "video_enabled",
+    "video_category",
+    "video_tags",
 )
 
 UPDATABLE_VIDEO_FIELDS = (
@@ -25,6 +27,8 @@ UPDATABLE_VIDEO_FIELDS = (
     "video_date",
     "video_order",
     "video_enabled",
+    "video_category",
+    "video_tags",
 )
 
 
@@ -99,15 +103,7 @@ def _validate_video_field_types(fields):
 def _create_video(table, body):
     _validate_required_fields(body)
 
-    video = {
-        "video_id": body["video_id"],
-        "video_title": body["video_title"],
-        "video_url": body["video_url"],
-        "video_alt": body["video_alt"],
-        "video_date": body["video_date"],
-        "video_order": body["video_order"],
-        "video_enabled": body["video_enabled"],
-    }
+    video = {field: body[field] for field in REQUIRED_VIDEO_FIELDS}
 
     table.put_item(
         Item=video,

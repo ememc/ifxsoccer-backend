@@ -16,6 +16,8 @@ REQUIRED_IMAGE_FIELDS = (
     "image_date",
     "image_order",
     "image_enabled",
+    "image_category",
+    "image_tags",
 )
 
 UPDATABLE_IMAGE_FIELDS = (
@@ -25,6 +27,8 @@ UPDATABLE_IMAGE_FIELDS = (
     "image_date",
     "image_order",
     "image_enabled",
+    "image_category",
+    "image_tags",
 )
 
 
@@ -99,15 +103,7 @@ def _validate_image_field_types(fields):
 def _create_image(table, body):
     _validate_required_fields(body)
 
-    image = {
-        "image_id": body["image_id"],
-        "image_title": body["image_title"],
-        "image_url": body["image_url"],
-        "image_alt": body["image_alt"],
-        "image_date": body["image_date"],
-        "image_order": body["image_order"],
-        "image_enabled": body["image_enabled"],
-    }
+    image = {field: body[field] for field in REQUIRED_IMAGE_FIELDS}
 
     table.put_item(
         Item=image,
