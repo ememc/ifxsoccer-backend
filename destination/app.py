@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 from decimal import Decimal
@@ -83,6 +84,79 @@ def _build_response(status_code, body):
     }
 
 
+def _get_http_method(event, default="GET"):
+    try:
+        outer_body = _get_body_payload(event)
+
+        if isinstance(outer_body, dict):
+            nested_method = outer_body.get("httpMethod")
+
+            if isinstance(nested_method, str) and nested_method.strip():
+                return nested_method.strip().upper()
+
+    except Exception:
+        pass
+
+    method = event.get("httpMethod") or default
+    return method.upper()
+
+
+def _get_path_parameters(event):
+    try:
+        outer_body = _get_body_payload(event)
+
+        if isinstance(outer_body, dict):
+            nested_path_parameters = outer_body.get("pathParameters")
+
+            if isinstance(nested_path_parameters, dict):
+                return nested_path_parameters
+
+    except Exception:
+        pass
+
+    path_parameters = event.get("pathParameters")
+    return path_parameters if isinstance(path_parameters, dict) else {}
+
+
+def _get_body_payload(event):
+    """
+    Soporta:
+    1. API Gateway REST/HTTP API:
+       event["body"] = '{"destination_id":"1", ...}'
+
+    2. Lambda Console directo:
+       {
+         "destination_id": "1",
+         ...
+       }
+    """
+
+    body = event.get("body")
+
+    if body is None:
+        return event
+
+    if event.get("isBase64Encoded"):
+        if not isinstance(body, str):
+            raise ValueError("El body en base64 debe ser texto.")
+
+        try:
+            body = base64.b64decode(body).decode("utf-8")
+        except (ValueError, UnicodeDecodeError) as error:
+            raise ValueError("El body en base64 no es valido.") from error
+
+    if isinstance(body, dict):
+        return body
+
+    if not isinstance(body, str):
+        raise ValueError("El body debe ser texto JSON.")
+
+    try:
+        return json.loads(body)
+    except json.JSONDecodeError as error:
+        raise ValueError("El body no contiene un JSON valido.") from error
+
+
 def _get_table():
     table_name = os.environ.get("DESTINATION_TABLE_NAME", "destinations")
     if not table_name:
@@ -91,21 +165,31 @@ def _get_table():
 
 
 def _parse_body(event):
-    body = event.get("body")
+    outer_body = _get_body_payload(event)
 
-    if body is None:
+    if outer_body is None:
         return {}
 
-    if isinstance(body, str):
+    if not isinstance(outer_body, dict):
+        raise ValueError("El body externo debe ser un objeto JSON.")
+
+    inner_body = outer_body.get("body")
+
+    if isinstance(inner_body, str):
         try:
-            body = json.loads(body)
-        except json.JSONDecodeError:
-            raise ValueError("El body debe ser un JSON valido.")
+            payload = json.loads(inner_body)
+        except json.JSONDecodeError as error:
+            raise ValueError("El body interno no contiene JSON valido.") from error
 
-    if not isinstance(body, dict):
-        raise ValueError("El body debe ser un objeto JSON.")
+        if not isinstance(payload, dict):
+            raise ValueError("El body interno debe ser un objeto JSON.")
 
-    return body
+        return payload
+
+    if isinstance(inner_body, dict):
+        return inner_body
+
+    return outer_body
 
 
 def _validate_required_fields(body):
@@ -248,8 +332,8 @@ def _list_destinations(table):
 
 
 def lambda_handler(event, context):
-    method = (event.get("httpMethod") or "GET").upper()
-    destination_id = (event.get("pathParameters") or {}).get("destination_id")
+    method = _get_http_method(event)
+    destination_id = _get_path_parameters(event).get("destination_id")
 
     try:
         if method == "OPTIONS":

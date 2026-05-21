@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 from decimal import Decimal
@@ -50,6 +51,82 @@ def _build_response(status_code, body):
     }
 
 
+def _get_http_method(event, default="POST"):
+
+    try:
+        outer_body = _get_body_payload(event)
+
+        if isinstance(outer_body, dict):
+            nested_method = outer_body.get("httpMethod")
+
+            if isinstance(nested_method, str) and nested_method.strip():
+                return nested_method.strip().upper()
+
+    except Exception:
+        pass
+
+    method = event.get("httpMethod") or default
+    return method.upper()
+
+
+def _get_path_parameters(event):
+    try:
+        outer_body = _get_body_payload(event)
+
+        if isinstance(outer_body, dict):
+            nested_path_parameters = outer_body.get("pathParameters")
+
+            if isinstance(nested_path_parameters, dict):
+                return nested_path_parameters
+
+    except Exception:
+        pass
+
+    path_parameters = event.get("pathParameters")
+    return path_parameters if isinstance(path_parameters, dict) else {}
+
+
+def _get_body_payload(event):
+    """
+    Soporta:
+    1. API Gateway REST/HTTP API:
+       event["body"] = '{"hero_id":"1", ...}'
+
+    2. Lambda Console directo:
+       {
+         "hero_id": "1",
+         "hero_title": "...",
+         ...
+       }
+    """
+
+    body = event.get("body")
+
+    if body is None:
+        # Invocación directa desde Lambda Console
+        return event
+
+    if event.get("isBase64Encoded"):
+        if not isinstance(body, str):
+            raise ValueError("El body en base64 debe ser texto.")
+
+        try:
+            body = base64.b64decode(body).decode("utf-8")
+        except (ValueError, UnicodeDecodeError) as error:
+            raise ValueError("El body en base64 no es valido.") from error
+
+    if isinstance(body, dict):
+        return body
+
+    if not isinstance(body, str):
+        raise ValueError("El body debe ser texto JSON.")
+
+    try:
+        return json.loads(body)
+    except json.JSONDecodeError as error:
+        raise ValueError("El body no contiene un JSON valido.") from error
+
+
 def _get_table():
     table_name = os.environ.get("HERO_TABLE_NAME", "heros")
     if not table_name:
@@ -57,26 +134,38 @@ def _get_table():
     return dynamodb.Table(table_name)
 
 
-def _parse_body(event):
-    body = event.get("body")
 
-    if body is None:
+def _parse_body(event):
+    outer_body = _get_body_payload(event)
+
+    if outer_body is None:
         return {}
 
-    if isinstance(body, str):
+    if not isinstance(outer_body, dict):
+        raise ValueError("El body externo debe ser un objeto JSON.")
+
+    inner_body = outer_body.get("body")
+
+    if isinstance(inner_body, str):
         try:
-            body = json.loads(body)
-        except json.JSONDecodeError:
-            raise ValueError("El body debe ser un JSON valido.")
+            payload = json.loads(inner_body)
+        except json.JSONDecodeError as error:
+            raise ValueError("El body interno no contiene JSON valido.") from error
 
-    if not isinstance(body, dict):
-        raise ValueError("El body debe ser un objeto JSON.")
+        if not isinstance(payload, dict):
+            raise ValueError("El body interno debe ser un objeto JSON.")
 
-    return body
+        return payload
+
+    if isinstance(inner_body, dict):
+        return inner_body
+
+    return outer_body
 
 
 def _validate_required_fields(body):
     missing_fields = [field for field in REQUIRED_HERO_FIELDS if field not in body]
+
     if missing_fields:
         raise ValueError(
             f"Faltan campos obligatorios: {', '.join(missing_fields)}."
@@ -115,16 +204,17 @@ def _create_hero(table, body):
 
 def _update_hero(table, hero_id, body):
     if not hero_id:
-        raise ValueError("Debes enviar hero_id en la URL.")
+        hero_id = body.get("hero_id")
+
+    if not hero_id:
+        raise ValueError("Debes enviar hero_id en la URL o en el body.")
 
     update_fields = {
         key: body[key] for key in UPDATABLE_HERO_FIELDS if key in body
     }
 
     if not update_fields:
-        raise ValueError(
-            "Debes enviar al menos un campo para actualizar."
-        )
+        raise ValueError("Debes enviar al menos un campo para actualizar.")
 
     if "hero_enabled" in update_fields and not isinstance(
         update_fields["hero_enabled"], bool
@@ -138,6 +228,7 @@ def _update_hero(table, hero_id, body):
     for index, (field_name, field_value) in enumerate(update_fields.items(), start=1):
         name_key = f"#field{index}"
         value_key = f":value{index}"
+
         expression_attribute_names[name_key] = field_name
         expression_attribute_values[value_key] = field_value
         update_parts.append(f"{name_key} = {value_key}")
@@ -161,6 +252,9 @@ def _update_hero(table, hero_id, body):
 
 
 def _get_hero(table, hero_id):
+    if not hero_id:
+        raise ValueError("Debes enviar hero_id en la URL.")
+
     response = table.get_item(Key={"hero_id": hero_id})
     item = response.get("Item")
 
@@ -196,16 +290,21 @@ def _list_hero(table):
     return _build_response(
         200,
         {
-            "message": "Hero obtenidos correctamente.",
+            "message": "Heroes obtenidos correctamente.",
             "count": len(items),
-            "hero": items,
+            "heroes": items,
         },
     )
 
 
 def lambda_handler(event, context):
-    method = (event.get("httpMethod") or "GET").upper()
-    hero_id = (event.get("pathParameters") or {}).get("hero_id")
+    method = _get_http_method(event)
+    path_params = _get_path_parameters(event)
+
+    hero_id = (
+        path_params.get("hero_id")
+        or path_params.get("id")
+    )
 
     try:
         if method == "OPTIONS":
@@ -230,8 +329,10 @@ def lambda_handler(event, context):
             405,
             {"message": f"Metodo {method} no soportado."},
         )
+
     except ValueError as error:
         return _build_response(400, {"message": str(error)})
+
     except ClientError as error:
         error_code = error.response.get("Error", {}).get("Code")
 
@@ -255,6 +356,7 @@ def lambda_handler(event, context):
                 "details": str(error),
             },
         )
+
     except BotoCoreError as error:
         return _build_response(
             500,

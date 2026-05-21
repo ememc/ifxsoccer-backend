@@ -1,7 +1,7 @@
 {
   "httpMethod": "PUT",
   "pathParameters": {
-    "hero_id": "hero-home-001"
+    "hero_id": "50320fbe-7a96-430d-899f-01ce54fc4dfd"
   },
   "body": "{\"hero_button\":\"Apply now\",\"hero_call\":\"Start your international soccer journey\",\"hero_date\":\"2026-05-05\",\"hero_enabled\":true,\"hero_image\":\"https://cdn.ifxsoccer.com/wp-content/uploads/hero.webp\",\"hero_title\":\"Train in Europe\"}"
 }
