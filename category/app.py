@@ -11,6 +11,7 @@ dynamodb = boto3.resource("dynamodb", region_name="us-west-1")
 
 REQUIRED_CATEGORY_FIELDS = (
     "category_id",
+    "category_image",
     "category_hero",
     "category_title",
     "category_description",
@@ -29,6 +30,7 @@ REQUIRED_CATEGORY_FIELDS = (
 )
 
 UPDATABLE_CATEGORY_FIELDS = (
+    "category_image",
     "category_hero",
     "category_title",
     "category_description",
