@@ -12,21 +12,11 @@ dynamodb = boto3.resource("dynamodb", region_name="us-west-1")
 REQUIRED_CATEGORY_FIELDS = (
     "category_id",
     "category_image",
-    "category_hero",
     "category_title",
     "category_description",
     "category_section",
-    "category_players",
-    "category_details",
-    "category_variations",
-    "category_addons",
-    "category_information",
-    "category_category",
-    "category_apply",
     "category_enabled",
-    "category_status",
     "category_date",
-    "category_tags",
 )
 
 UPDATABLE_CATEGORY_FIELDS = (
@@ -50,12 +40,6 @@ UPDATABLE_CATEGORY_FIELDS = (
 
 LIST_FIELD_SCHEMAS = {
     "category_hero": ("image_url", "image_text"),
-    "category_section": (
-        "section_image",
-        "section_title",
-        "section_text",
-        "section_order",
-    ),
     "category_players": (
         "player_image",
         "player_says",
@@ -82,6 +66,19 @@ LIST_FIELD_SCHEMAS = {
         "information_image",
         "information_url",
     ),
+}
+
+CATEGORY_DEFAULT_FIELDS = {
+    "category_hero": [],
+    "category_players": [],
+    "category_details": [],
+    "category_variations": [],
+    "category_addons": [],
+    "category_information": [],
+    "category_category": "",
+    "category_apply": "",
+    "category_status": "",
+    "category_tags": "",
 }
 
 
@@ -225,11 +222,30 @@ def _validate_required_fields(body):
     _validate_category_field_types(body)
 
 
+def _build_category_item(body):
+    category = {
+        field: list(value) if isinstance(value, list) else value
+        for field, value in CATEGORY_DEFAULT_FIELDS.items()
+    }
+    category.update({field: body[field] for field in REQUIRED_CATEGORY_FIELDS})
+
+    for field in CATEGORY_DEFAULT_FIELDS:
+        if field in body:
+            category[field] = body[field]
+
+    return category
+
+
 def _validate_category_field_types(fields):
     if "category_enabled" in fields and not isinstance(
         fields["category_enabled"], bool
     ):
         raise ValueError("El campo category_enabled debe ser booleano.")
+
+    if "category_section" in fields and not isinstance(
+        fields["category_section"], bool
+    ):
+        raise ValueError("El campo category_section debe ser booleano.")
 
     for field_name, required_keys in LIST_FIELD_SCHEMAS.items():
         if field_name not in fields:
@@ -256,7 +272,7 @@ def _validate_category_field_types(fields):
 def _create_category(table, body):
     _validate_required_fields(body)
 
-    category = {field: body[field] for field in REQUIRED_CATEGORY_FIELDS}
+    category = _build_category_item(body)
 
     table.put_item(
         Item=category,
