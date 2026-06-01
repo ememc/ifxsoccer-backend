@@ -30,6 +30,7 @@ UPDATABLE_CATEGORY_FIELDS = (
     "category_variations",
     "category_addons",
     "category_information",
+    "category_programs",
     "category_category",
     "category_apply",
     "category_enabled",
@@ -66,6 +67,11 @@ LIST_FIELD_SCHEMAS = {
         "information_image",
         "information_url",
     ),
+    "category_programs": (
+        "program_id",
+        "program_order",
+        "program_status",
+    ),
 }
 
 CATEGORY_DEFAULT_FIELDS = {
@@ -75,6 +81,13 @@ CATEGORY_DEFAULT_FIELDS = {
     "category_variations": [],
     "category_addons": [],
     "category_information": [],
+    "category_programs": [
+        {
+            "program_id": "",
+            "program_order": "1",
+            "program_status": True,
+        }
+    ],
     "category_category": "",
     "category_apply": "",
     "category_status": "",
@@ -224,7 +237,9 @@ def _validate_required_fields(body):
 
 def _build_category_item(body):
     category = {
-        field: list(value) if isinstance(value, list) else value
+        field: [dict(item) if isinstance(item, dict) else item for item in value]
+        if isinstance(value, list)
+        else value
         for field, value in CATEGORY_DEFAULT_FIELDS.items()
     }
     category.update({field: body[field] for field in REQUIRED_CATEGORY_FIELDS})
@@ -232,6 +247,20 @@ def _build_category_item(body):
     for field in CATEGORY_DEFAULT_FIELDS:
         if field in body:
             category[field] = body[field]
+
+    return category
+
+
+def _normalize_category_item(category):
+    for field, value in CATEGORY_DEFAULT_FIELDS.items():
+        if field in category:
+            continue
+
+        category[field] = (
+            [dict(item) if isinstance(item, dict) else item for item in value]
+            if isinstance(value, list)
+            else value
+        )
 
     return category
 
@@ -327,7 +356,7 @@ def _update_category(table, category_id, body):
         200,
         {
             "message": "Categoria actualizada correctamente.",
-            "category": response.get("Attributes", {}),
+            "category": _normalize_category_item(response.get("Attributes", {})),
         },
     )
 
@@ -346,7 +375,7 @@ def _get_category(table, category_id):
         200,
         {
             "message": "Categoria obtenida correctamente.",
-            "category": item,
+            "category": _normalize_category_item(item),
         },
     )
 
@@ -370,7 +399,7 @@ def _list_categories(table):
         {
             "message": "Categorias obtenidas correctamente.",
             "count": len(items),
-            "categories": items,
+            "categories": [_normalize_category_item(item) for item in items],
         },
     )
 
