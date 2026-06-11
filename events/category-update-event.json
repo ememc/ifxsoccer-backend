@@ -3,5 +3,5 @@
   "pathParameters": {
     "category_id": "cad0df14-e06d-4119-a81f-0bcf47be7a62"
   },
-  "body": "{\"category_image\":\"https://cdn.ifxsoccer.com/categorys/category-cover-2026.webp\",\"category_title\":\"International Soccer category 2026\",\"category_description\":\"Updated player development experience.\",\"category_enabled\":true,\"category_status\":\"active\",\"category_date\":\"2026-05-06\",\"category_tags\":\"\"}"
+  "body": "{\"category_image\":\"https://cdn.ifxsoccer.com/categorys/category-cover-2026.webp\",\"category_title\":\"International Soccer category 2026\",\"category_description\":\"Updated player development experience.\",\"category_programs\":[{\"program_id\":\"\",\"program_order\":\"1\",\"program_status\":true}],\"category_enabled\":true,\"category_status\":\"active\",\"category_date\":\"2026-05-06\",\"category_tags\":\"\"}"
 }
