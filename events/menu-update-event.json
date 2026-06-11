@@ -1,0 +1,7 @@
+{
+  "httpMethod": "PUT",
+  "pathParameters": {
+    "menu_id": "cad0df14-e06d-4119-a81f-0bcf47be7a64"
+  },
+  "body": "{\"menu_header\":[{\"header_id\":\"cad0df14-e06d-4119-a81f-0bcf47be7a64\",\"header_text\":\"Updated Header\",\"header_enabled\":true,\"header_order\":1,\"header_call\":\"#\",\"header_target\":\"_blank\",\"menu_section\":[{\"section_id\":\"cad0df14-e06d-4119-a81f-0bcf47be7a64\",\"section_title\":\"Updated Section\",\"section_image\":\"\",\"section_call\":\"#\",\"section_target\":\"_self\",\"section_order\":1,\"section_detail\":true,\"menu_detail\":[{\"detail_id\":\"cad0df14-e06d-4119-a81f-0bcf47be7a64\",\"detail_title\":\"Updated Detail\",\"section_image\":\"\",\"section_call\":\"#\",\"section_target\":\"_self\",\"section_order\":1}]}]}]}"
+}

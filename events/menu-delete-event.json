@@ -1,0 +1,6 @@
+{
+  "httpMethod": "DELETE",
+  "pathParameters": {
+    "menu_id": "cad0df14-e06d-4119-a81f-0bcf47be7a64"
+  }
+}

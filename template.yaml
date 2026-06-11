@@ -35,6 +35,10 @@ Parameters:
     Type: String
     Default: destinations
     Description: "Nombre de la tabla DynamoDB usada por el lambda destination"
+  MenuTableName:
+    Type: String
+    Default: menus
+    Description: "Nombre de la tabla DynamoDB usada por el lambda menu"
 
 Resources:
   ServerlessRestApi:
@@ -44,7 +48,7 @@ Resources:
       Cors:
         AllowOrigin: "'https://new.ifxsoccer.com'"
         AllowHeaders: "'Content-Type,Authorization'"
-        AllowMethods: "'GET,POST,PUT,OPTIONS'"
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
 
   ApiGatewayDefault4xxResponse:
     Type: AWS::ApiGateway::GatewayResponse
@@ -54,7 +58,7 @@ Resources:
       ResponseParameters:
         gatewayresponse.header.Access-Control-Allow-Origin: "'https://new.ifxsoccer.com'"
         gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,Authorization'"
-        gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,PUT,OPTIONS'"
+        gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,PUT,DELETE,OPTIONS'"
 
   ApiGatewayDefault5xxResponse:
     Type: AWS::ApiGateway::GatewayResponse
@@ -64,7 +68,7 @@ Resources:
       ResponseParameters:
         gatewayresponse.header.Access-Control-Allow-Origin: "'https://new.ifxsoccer.com'"
         gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,Authorization'"
-        gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,PUT,OPTIONS'"
+        gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,PUT,DELETE,OPTIONS'"
 
   AuthValidateUserFunction:
     Type: AWS::Serverless::Function
@@ -353,6 +357,53 @@ Resources:
             Path: /destination/{destination_id}
             Method: put
 
+  MenuFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: fn-ifxsoccer-menu
+      CodeUri: menu/
+      Handler: app.lambda_handler
+      Runtime: python3.14
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          MENU_TABLE_NAME: !Ref MenuTableName
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MenuTableName
+      Events:
+        MenuList:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ServerlessRestApi
+            Path: /menu
+            Method: get
+        MenuCreate:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ServerlessRestApi
+            Path: /menu
+            Method: post
+        MenuGetById:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ServerlessRestApi
+            Path: /menu/{menu_id}
+            Method: get
+        MenuUpdate:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ServerlessRestApi
+            Path: /menu/{menu_id}
+            Method: put
+        MenuDelete:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ServerlessRestApi
+            Path: /menu/{menu_id}
+            Method: delete
+
 Outputs:
   AuthValidateUserApi:
     Description: "API Gateway endpoint URL for Prod stage for Auth validation function"
@@ -417,3 +468,12 @@ Outputs:
   DestinationFunctionIamRole:
     Description: "Implicit IAM Role created for Destination function"
     Value: !GetAtt DestinationFunctionRole.Arn
+  MenuApi:
+    Description: "API Gateway endpoint URL for Prod stage for Menu function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/Prod/menu"
+  MenuFunction:
+    Description: "Menu Lambda Function ARN"
+    Value: !GetAtt MenuFunction.Arn
+  MenuFunctionIamRole:
+    Description: "Implicit IAM Role created for Menu function"
+    Value: !GetAtt MenuFunctionRole.Arn
